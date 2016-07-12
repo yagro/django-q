@@ -3,9 +3,6 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = ')cqmpi+p@n&!u&fu@!m@9h&1bz9mwmstsahe)nf!ms+c$uc=x7'
 
@@ -62,8 +59,14 @@ TEMPLATES = [
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql_psycopg2',
+            'NAME': 'postgres',
+            'USER': 'postgres',
+            'PASSWORD': '',
+            'HOST': 'localhost',
+            'PORT': '',
+        }
     }
 }
 

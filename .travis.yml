@@ -3,6 +3,7 @@ language: python
 services:
   - redis-server
   - mongodb
+  - postgresql
 
 python:
   - "2.7"
@@ -21,6 +22,7 @@ addons:
       - tcl8.5
 
 before_script:
+  - psql -c 'create database postgres;' -U postgres
   - git clone https://github.com/antirez/disque.git disque_server
   - "cd disque_server/src && make && PREFIX=../ make install && cd -"
   - "./disque_server/bin/disque-server &"

@@ -166,7 +166,7 @@ class Sentinel(object):
         :param process: the process to reincarnate
         :type process: Process or None
         """
-        db.connections.close_all()  # Close any old connections
+        db.close_old_connections()
         if process == self.monitor:
             self.monitor = self.spawn_monitor()
             logger.error(_("reincarnated monitor {} after sudden death").format(process.name))
@@ -190,7 +190,7 @@ class Sentinel(object):
     def spawn_cluster(self):
         self.pool = []
         Stat(self).save()
-        db.connection.close()
+        db.close_old_connections()
         # spawn worker pool
         for __ in range(self.pool_size):
             self.spawn_worker()

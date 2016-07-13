@@ -25,7 +25,7 @@ import arrow
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django import db
-from django.db import InterfaceError, transaction
+from django.db import InterfaceError
 
 # Local
 import signing
@@ -537,11 +537,11 @@ def scheduler(broker=None):
             # log it
             if not s.task:
                 logger.error(
-                        _('{} failed to create a task from schedule [{}]').format(current_process().name,
-                                                                                  s.name or s.id))
+                    _('{} failed to create a task from schedule [{}]').format(current_process().name,
+                                                                              s.name or s.id))
             else:
                 logger.info(
-                        _('{} created a task from schedule [{}]').format(current_process().name, s.name or s.id))
+                    _('{} created a task from schedule [{}]').format(current_process().name, s.name or s.id))
             # default behavior is to delete a ONCE schedule
             if s.schedule_type == s.ONCE:
                 if s.repeats < 0:
@@ -593,8 +593,7 @@ def set_cpu_affinity(n, process_ids, actual=not Conf.TESTING):
 
 
 def close_connections():
-    if transaction.get_autocommit():
-        try:
-            db.close_old_connections()
-        except InterfaceError:
-            pass
+    try:
+        db.close_old_connections()
+    except InterfaceError:
+        pass

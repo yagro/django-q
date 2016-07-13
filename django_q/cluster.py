@@ -25,6 +25,7 @@ import arrow
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django import db
+from django.db import InterfaceError, transaction
 
 # Local
 import signing
@@ -166,7 +167,7 @@ class Sentinel(object):
         :param process: the process to reincarnate
         :type process: Process or None
         """
-        db.close_old_connections()
+        close_connections()
         if process == self.monitor:
             self.monitor = self.spawn_monitor()
             logger.error(_("reincarnated monitor {} after sudden death").format(process.name))
@@ -190,7 +191,7 @@ class Sentinel(object):
     def spawn_cluster(self):
         self.pool = []
         Stat(self).save()
-        db.close_old_connections()
+        close_connections()
         # spawn worker pool
         for __ in range(self.pool_size):
             self.spawn_worker()
@@ -371,7 +372,7 @@ def worker(task_queue, result_queue, timer, timeout=Conf.TIMEOUT):
                     rollbar.report_exc_info()
         # We're still going
         if not result:
-            db.close_old_connections()
+            close_connections()
             # execute the payload
             timer.value = task['kwargs'].pop('timeout', timeout or 0)  # Busy
             try:
@@ -405,7 +406,7 @@ def save_task(task, broker):
     if task.get('chain', None):
         tasks.async_chain(task['chain'], group=task['group'], cached=task['cached'], sync=task['sync'], broker=broker)
     # SAVE LIMIT > 0: Prune database, SAVE_LIMIT 0: No pruning
-    db.close_old_connections()
+    close_connections()
     try:
         if task['success'] and 0 < Conf.SAVE_LIMIT <= Success.objects.count():
             Success.objects.last().delete()
@@ -486,7 +487,7 @@ def scheduler(broker=None):
     """
     if not broker:
         broker = get_broker()
-    db.close_old_connections()
+    close_connections()
     try:
         for s in Schedule.objects.exclude(repeats=0).filter(next_run__lt=timezone.now()):
             args = ()
@@ -589,3 +590,11 @@ def set_cpu_affinity(n, process_ids, actual=not Conf.TESTING):
             if actual:
                 p.cpu_affinity(affinity)
             logger.info(_('{} will use cpu {}').format(pid, affinity))
+
+
+def close_connections():
+    if transaction.get_autocommit():
+        try:
+            db.close_old_connections()
+        except InterfaceError:
+            pass

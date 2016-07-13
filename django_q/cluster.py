@@ -25,7 +25,6 @@ import arrow
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from django import db
-from django.db import InterfaceError
 
 # Local
 import signing
@@ -595,5 +594,5 @@ def set_cpu_affinity(n, process_ids, actual=not Conf.TESTING):
 def close_connections():
     try:
         db.close_old_connections()
-    except InterfaceError:
-        pass
+    except Exception as e:
+        logger.warning(e)

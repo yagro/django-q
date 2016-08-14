@@ -51,7 +51,7 @@ class ORM(Broker):
         return package.pk
 
     def dequeue(self):
-        tasks = self.get_connection().filter(key=self.list_key, lock__lt=_timeout())[0:Conf.BULK]
+        tasks = self.get_connection().select_for_update().filter(key=self.list_key, lock__lt=_timeout())[0:Conf.BULK]
         if tasks:
             task_list = []
             lock = timezone.now()

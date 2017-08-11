@@ -1,4 +1,3 @@
-import logging
 from copy import deepcopy
 from signal import signal
 from multiprocessing import cpu_count, Queue
@@ -6,6 +5,7 @@ from multiprocessing import cpu_count, Queue
 # django
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
+from django.utils.log import getLogger
 
 # external
 import os
@@ -165,17 +165,7 @@ class Conf(object):
 
 
 # logger
-logger = logging.getLogger('django-q')
-
-# Set up standard logging handler in case there is none
-if not logger.handlers:
-    logger.setLevel(level=getattr(logging, Conf.LOG_LEVEL))
-    logger.propagate = False
-    formatter = logging.Formatter(fmt='%(asctime)s [Q] %(levelname)s %(message)s',
-                                  datefmt='%H:%M:%S')
-    handler = logging.StreamHandler()
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
+logger = getLogger('django-q')
 
 # rollbar
 if Conf.ROLLBAR:
